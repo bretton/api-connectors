@@ -5,6 +5,10 @@ from time import sleep
 import json
 import logging
 import urllib
+try:
+    import urlparse
+except ImportError:
+    import urllib.parse as urlparse
 import math
 from util.api_key import generate_nonce, generate_signature
 import time
@@ -88,8 +92,10 @@ class BitMEXWebsocket:
 
         # The instrument has a tickSize. Use it to round values.
         instrument = self.data['instrument'][0]
-        instrument['tickLog'] = int(math.fabs(math.log10(instrument['tickSize'])))
-        return {k: round(float(v or 0), instrument['tickLog']) for k, v in ticker.items()}
+        result = {}
+        for k in ticker:
+            result[k] = round(float(ticker[k] or 0), instrument['tickLog'])
+        return result
 
     def funds(self):
         '''Get your margin details.'''
@@ -184,8 +190,8 @@ class BitMEXWebsocket:
 
         urlParts = list(urllib.parse.urlparse(self.endpoint))
         urlParts[0] = urlParts[0].replace('http', 'ws')
-        urlParts[2] = "/realtime?subscribe={}".format(','.join(subscriptions))
-        return urllib.parse.urlunparse(urlParts)
+        urlParts[2] = "/realtime?subscribe=" + ",".join(subscriptions)
+        return urlparse.urlunparse(urlParts)
 
     def __wait_for_account(self):
         '''On subscribe, this data will come down. Wait for it.'''

@@ -1,5 +1,8 @@
-import time, urllib, hmac, hashlib
-
+import time, hmac, hashlib
+try:
+    import urlparse
+except ImportError:
+    import urllib.parse as urlparse
 
 def generate_nonce():
     return int(round(time.time() + 3600))
