@@ -7,7 +7,7 @@ import logging
 import urllib
 import math
 from util.api_key import generate_nonce, generate_signature
-
+import time
 
 # Naive implementation of connecting to BitMEX websocket for streaming realtime data.
 # The Marketmaker still interacts with this as if it were a REST Endpoint, but now it can get
@@ -42,6 +42,13 @@ class BitMEXWebsocket:
         self.keys = {}
         self.exited = False
 
+        self.timemark = {}
+        self.timemark['find'] = 0
+        self.timemark['append'] = 0
+
+        self.rcvcount = {}
+        self.rcvdatasize = {}
+
         # We can subscribe right in the connection querystring, so let's build that.
         # Subscribe to all pertinent endpoints
         wsURL = self.__get_url()
@@ -73,18 +80,27 @@ class BitMEXWebsocket:
         lastTrade = self.data['trade'][-1]
         ticker = {
             "last": lastTrade['price'],
-            "buy": lastQuote['bidPrice'],
-            "sell": lastQuote['askPrice'],
+            "bid": lastQuote['bidPrice'],
+            "ask": lastQuote['askPrice'],
             "mid": (float(lastQuote['bidPrice'] or 0) + float(lastQuote['askPrice'] or 0)) / 2
         }
 
         # The instrument has a tickSize. Use it to round values.
         instrument = self.data['instrument'][0]
+        instrument['tickLog'] = int(math.fabs(math.log10(instrument['tickSize'])))
         return {k: round(float(v or 0), instrument['tickLog']) for k, v in ticker.items()}
 
     def funds(self):
         '''Get your margin details.'''
         return self.data['margin'][0]
+
+    def position(self):
+        '''Get your position details.'''
+        return self.data['position'][0]
+
+    def get_ohlcv(self, timeframe='1m'):
+        bin = 'tradeBin'+timeframe
+        return self.data[bin] if bin in self.data else []
 
     def market_depth(self):
         '''Get market depth (orderbook). Returns all levels.'''
@@ -95,6 +111,9 @@ class BitMEXWebsocket:
         orders = self.data['order']
         # Filter to only open orders (leavesQty > 0) and those that we actually placed
         return [o for o in orders if str(o['clOrdID']).startswith(clOrdIDPrefix) and o['leavesQty'] > 0]
+
+    def all_orders(self):
+        return self.data['order']
 
     def recent_trades(self):
         '''Get recent trades.'''
@@ -167,12 +186,12 @@ class BitMEXWebsocket:
     def __wait_for_account(self):
         '''On subscribe, this data will come down. Wait for it.'''
         # Wait for the keys to show up from the ws
-        while not {'margin', 'position', 'order', 'orderBookL2'} <= set(self.data):
+        while not {'margin', 'position', 'order'} <= set(self.data):
             sleep(0.1)
 
     def __wait_for_symbol(self, symbol):
         '''On subscribe, this data will come down. Wait for it.'''
-        while not {'instrument', 'trade', 'quote'} <= set(self.data):
+        while not {'instrument', 'trade', 'quote', 'orderBookL2'} <= set(self.data):
             sleep(0.1)
 
     def __send_command(self, command, args=None):
@@ -180,6 +199,14 @@ class BitMEXWebsocket:
         if args is None:
             args = []
         self.ws.send(json.dumps({"op": command, "args": args}))
+
+    def subscribe(self, topics):
+        topics = [topic + ':' + self.symbol for topic in topics]
+        self.__send_command('subscribe', topics)
+
+    def unsubscribe(self, topics):
+        topics = [topic + ':' + self.symbol for topic in topics]
+        self.__send_command('unsubscribe', topics)
 
     def __on_message(self, ws, message):
         '''Handler for parsing WS messages.'''
@@ -190,11 +217,16 @@ class BitMEXWebsocket:
         action = message['action'] if 'action' in message else None
         try:
             if 'subscribe' in message:
-                self.logger.debug("Subscribed to %s." % message['subscribe'])
+                self.logger.info("Subscribed to %s." % message['subscribe'])
+            elif 'unsubscribe' in message:
+                self.logger.info("Unsubscribed to %s." % message['unsubscribe'])
             elif action:
 
-                if table not in self.data:
-                    self.data[table] = []
+                if table not in self.rcvcount:
+                    self.rcvcount[table] = 0
+                    self.rcvdatasize[table] = 0
+                self.rcvcount[table] = self.rcvcount[table] + 1
+                self.rcvdatasize[table] = self.rcvdatasize[table] + len(message['data'])
 
                 # There are four possible actions from the WS:
                 # 'partial' - full table image
@@ -203,13 +235,21 @@ class BitMEXWebsocket:
                 # 'delete'  - delete row
                 if action == 'partial':
                     self.logger.debug("%s: partial" % table)
-                    self.data[table] += message['data']
                     # Keys are communicated on partials to let you know how to uniquely identify
                     # an item. We use it for updates.
                     self.keys[table] = message['keys']
+                    if table not in self.data:
+                        self.data[table] = []
+                    self.appendData(self.keys[table], self.data[table], message['data'])
+                    #self.data[table] += message['data']
+
                 elif action == 'insert':
+                    if table not in self.data:
+                        return
                     self.logger.debug('%s: inserting %s' % (table, message['data']))
-                    self.data[table] += message['data']
+                    self.appendData(self.keys[table], self.data[table], message['data'])
+                    self.rcvcount[table] = self.rcvcount[table] + 1
+                    #self.data[table] += message['data']
 
                     # Limit the max length of the table to avoid excessive memory usage.
                     # Don't trim orders because we'll lose valuable state if we do.
@@ -217,22 +257,30 @@ class BitMEXWebsocket:
                         self.data[table] = self.data[table][int(BitMEXWebsocket.MAX_TABLE_LEN / 2):]
 
                 elif action == 'update':
+                    if table not in self.data:
+                        return
                     self.logger.debug('%s: updating %s' % (table, message['data']))
                     # Locate the item in the collection and update it.
                     for updateData in message['data']:
-                        item = findItemByKeys(self.keys[table], self.data[table], updateData)
-                        if not item:
+                        item = self.fast_findItemByKeys(self.keys[table], self.data[table], updateData)
+                        if item is None:
                             return  # No item found to update. Could happen before push
                         item.update(updateData)
                         # Remove cancelled / filled orders
                         if table == 'order' and item['leavesQty'] <= 0:
                             self.data[table].remove(item)
+
                 elif action == 'delete':
+                    if table not in self.data:
+                        return
                     self.logger.debug('%s: deleting %s' % (table, message['data']))
                     # Locate the item in the collection and remove it.
                     for deleteData in message['data']:
-                        item = findItemByKeys(self.keys[table], self.data[table], deleteData)
+                        item = self.fast_findItemByKeys(self.keys[table], self.data[table], deleteData)
+                        if item is None:
+                            return
                         self.data[table].remove(item)
+
                 else:
                     raise Exception("Unknown action: %s" % action)
         except:
@@ -252,19 +300,52 @@ class BitMEXWebsocket:
         '''Called on websocket close.'''
         self.logger.info('Websocket Closed')
 
+    # Utility method for finding an item in the store.
+    # When an update comes through on the websocket, we need to figure out which item in the array it is
+    # in order to match that item.
+    #
+    # Helpfully, on a data push (or on an HTTP hit to /api/v1/schema), we have a "keys" array. These are the
+    # fields we can use to uniquely identify an item. Sometimes there is more than one, so we iterate through all
+    # provided keys.
+    def findItemByKeys(self, keys, table, matchData):
+        start = time.time()
+        if len(keys):
+            for item in table:
+                matched = True
+                for key in keys:
+                    if item[key] != matchData[key]:
+                        matched = False
+                if matched:
+                    end = time.time()
+                    self.timemark['find'] += (end - start)
+                    return item
+        end = time.time()
+        self.timemark['find'] += (end - start)
+        return None
 
-# Utility method for finding an item in the store.
-# When an update comes through on the websocket, we need to figure out which item in the array it is
-# in order to match that item.
-#
-# Helpfully, on a data push (or on an HTTP hit to /api/v1/schema), we have a "keys" array. These are the
-# fields we can use to uniquely identify an item. Sometimes there is more than one, so we iterate through all
-# provided keys.
-def findItemByKeys(keys, table, matchData):
-    for item in table:
-        matched = True
-        for key in keys:
-            if item[key] != matchData[key]:
-                matched = False
-        if matched:
-            return item
+    def appendData(self, keys, table, data):
+        start = time.time()
+        if len(keys):
+            for d in data:
+                d['key_pair_id'] = __make_key_pair_id__(keys, d)
+                table.append(d)
+        else:
+            table.extend(data)
+        end = time.time()
+        self.timemark['append'] += (end - start)
+
+    def fast_findItemByKeys(self, keys, table, matchData):
+        start = time.time()
+        if len(keys):
+            target_id = __make_key_pair_id__(keys, matchData)
+            for item in table:
+                if item['key_pair_id'] == target_id:
+                    end = time.time()
+                    self.timemark['find'] += (end - start)
+                    return item
+        end = time.time()
+        self.timemark['find'] += (end - start)
+        return None
+
+def __make_key_pair_id__(keys, d):
+    return ':'.join([str(v) for k, v in d.items() if k in keys])
