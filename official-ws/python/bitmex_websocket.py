@@ -41,6 +41,7 @@ class BitMEXWebsocket:
         self.data = {}
         self.keys = {}
         self.exited = False
+        self.connected = False
 
         self.timemark = {}
         self.timemark['find'] = 0
@@ -118,9 +119,6 @@ class BitMEXWebsocket:
     def recent_trades(self):
         '''Get recent trades.'''
         return self.data['trade']
-
-    def connected(self):
-        return self.ws.sock.connected
 
     #
     # End Public Methods
@@ -297,10 +295,12 @@ class BitMEXWebsocket:
 
     def __on_open(self, ws):
         '''Called when the WS opens.'''
+        self.connected = True
         self.logger.debug("Websocket Opened.")
 
     def __on_close(self, ws):
         '''Called on websocket close.'''
+        self.connected = False
         self.logger.info('Websocket Closed')
 
     # Utility method for finding an item in the store.
