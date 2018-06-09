@@ -119,6 +119,9 @@ class BitMEXWebsocket:
         '''Get recent trades.'''
         return self.data['trade']
 
+    def connected(self):
+        return self.ws.sock.connected
+
     #
     # End Public Methods
     #
