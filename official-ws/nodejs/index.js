@@ -210,7 +210,7 @@ function addStreamHelper(client, symbol, tableName, callback) {
         if (newData.length > client._maxTableLen) {
           newData.splice(0, newData.length - client._maxTableLen);
         }
-        callback(newData, symbol, table);
+        callback(newData, symbol, table, {action, data});
       } catch(e) {
         client.emit('error', e);
       }
