@@ -22,12 +22,13 @@ module.exports = function signMessage(secret, verb, url, nonce, data) {
 var nonceCounter = 0;
 
 module.exports.getWSAuthQuery = function getWSAuthQuery(apiKey, apiSecret) {
-  const nonce = Date.now() * 1000 + (nonceCounter++ % 1000); // prevents colliding nonces. Otherwise, use expires
+  const nonce = Date.now() / 1000 + 10;
   const query = {
-    'api-nonce': nonce,
+    'api-expires': nonce,
     'api-key': apiKey,
     'api-signature': module.exports(apiSecret, 'GET', '/realtime', nonce)
   };
+  debug("Connecting using expires", nonce);
 
   return querystring.stringify(query);
 };
