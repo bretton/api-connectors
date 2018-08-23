@@ -74,10 +74,17 @@ WebSocketClient.prototype.open = function(url){
       if (response.statusCode === 401) {
         this.logError(`Authentication invalid. Please check your credentials. Message: ${buf}`);
         closeConnection(CLOSE_UNEXPECTED);
-      } else if (response.statusCode === 502 || response.statusCode === 503) {
+      } else if (response.statusCode === 502) {
+          // Bad Gateway
+          this.logError(`Server responded with [${response.statusCode}], will retry soon: ${buf}`);
+          if (this.autoReconnectInterval < 5000) // maya be doubled due to several retries
+              this.autoReconnectInterval = 5000; // first retry in 5 seconds
+          closeConnection(CLOSE_BAD_GATEWAY);
+      } else if (response.statusCode === 503) {
         // maintainence / downtime
         this.logError(`Server responded with [${response.statusCode}], will retry soon: ${buf}`);
-        this.autoReconnectInterval = 5000; // first retry in 5 seconds
+        if (this.autoReconnectInterval < 5000) // maya be doubled due to several retries
+            this.autoReconnectInterval = 5000; // first retry in 5 seconds
         closeConnection(CLOSE_DOWNTIME);
       } else {
         this.logError(`Unexpected response from server [${response.statusCode}]: ${buf}`);
