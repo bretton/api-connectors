@@ -25,6 +25,7 @@
 #include "Error.h"
 #include "Notification.h"
 
+#undef U
 #include <boost/optional.hpp>
 
 namespace io {

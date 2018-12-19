@@ -19,20 +19,20 @@ namespace swagger {
 namespace client {
 namespace model {
 
-X-any::X-any()
+any::any()
 {
 }
 
-X-any::~X-any()
+any::~any()
 {
 }
 
-void X-any::validate()
+void any::validate()
 {
     // TODO: implement validation
 }
 
-web::json::value X-any::toJson() const
+web::json::value any::toJson() const
 {
     web::json::value val = web::json::value::object();
 
@@ -40,11 +40,11 @@ web::json::value X-any::toJson() const
     return val;
 }
 
-void X-any::fromJson(web::json::value& val)
+void any::fromJson(web::json::value& val)
 {
 }
 
-void X-any::toMultipart(std::shared_ptr<MultipartFormData> multipart, const utility::string_t& prefix) const
+void any::toMultipart(std::shared_ptr<MultipartFormData> multipart, const utility::string_t& prefix) const
 {
     utility::string_t namePrefix = prefix;
     if(namePrefix.size() > 0 && namePrefix.substr(namePrefix.size() - 1) != utility::conversions::to_string_t("."))
@@ -54,7 +54,7 @@ void X-any::toMultipart(std::shared_ptr<MultipartFormData> multipart, const util
 
 }
 
-void X-any::fromMultiPart(std::shared_ptr<MultipartFormData> multipart, const utility::string_t& prefix)
+void any::fromMultiPart(std::shared_ptr<MultipartFormData> multipart, const utility::string_t& prefix)
 {
     utility::string_t namePrefix = prefix;
     if(namePrefix.size() > 0 && namePrefix.substr(namePrefix.size() - 1) != utility::conversions::to_string_t("."))

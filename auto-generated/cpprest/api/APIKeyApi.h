@@ -27,6 +27,7 @@
 #include "Inline_response_200.h"
 #include <cpprest/details/basic_types.h>
 
+#undef U
 #include <boost/optional.hpp>
 
 namespace io {

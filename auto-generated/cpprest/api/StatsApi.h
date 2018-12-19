@@ -27,6 +27,7 @@
 #include "StatsHistory.h"
 #include "StatsUSD.h"
 
+#undef U
 #include <boost/optional.hpp>
 
 namespace io {

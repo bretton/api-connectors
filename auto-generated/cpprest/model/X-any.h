@@ -11,13 +11,13 @@
  */
 
 /*
- * X-any.h
+ * any.h
  *
  * 
  */
 
-#ifndef IO_SWAGGER_CLIENT_MODEL_X-any_H_
-#define IO_SWAGGER_CLIENT_MODEL_X-any_H_
+#ifndef IO_SWAGGER_CLIENT_MODEL_any_H_
+#define IO_SWAGGER_CLIENT_MODEL_any_H_
 
 
 #include "../ModelBase.h"
@@ -31,12 +31,12 @@ namespace model {
 /// <summary>
 /// 
 /// </summary>
-class  X-any
+class  any
     : public ModelBase
 {
 public:
-    X-any();
-    virtual ~X-any();
+    any();
+    virtual ~any();
 
     /////////////////////////////////////////////
     /// ModelBase overrides
@@ -50,7 +50,7 @@ public:
     void fromMultiPart(std::shared_ptr<MultipartFormData> multipart, const utility::string_t& namePrefix) override;
 
     /////////////////////////////////////////////
-    /// X-any members
+    /// any members
 
 
 protected:
@@ -61,4 +61,4 @@ protected:
 }
 }
 
-#endif /* IO_SWAGGER_CLIENT_MODEL_X-any_H_ */
+#endif /* IO_SWAGGER_CLIENT_MODEL_any_H_ */

@@ -26,6 +26,7 @@
 #include "Liquidation.h"
 #include <cpprest/details/basic_types.h>
 
+#undef U
 #include <boost/optional.hpp>
 
 namespace io {
