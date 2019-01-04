@@ -82,15 +82,25 @@ function emitSplitData(emitter, data) {
   // Technically, we can change this (e.g. chat channels)
   const filterKey = data.filterKey || 'symbol';
 
+  // Fix implemented as per https://github.com/BitMEX/api-connectors/issues/203#issuecomment-421221709
   // Generate data by symbol
+  //const symbolData = data.data.reduce((accumulator, currentValue) => {
+  //  if (accumulator.hasOwnProperty(currentValue[filterKey])) {
+  //    accumulator[currentValue[filterKey]].push(currentValue);
+  //  } else {
+  //    accumulator[currentValue[filterKey]] = [currentValue];
+  //  }
+  //  return accumulator;
+  //}, {});
+
+  const matchingStreams = emitter._listenerTree[table];
+  const initValue = _.mapValues(matchingStreams, () => []);
   const symbolData = data.data.reduce((accumulator, currentValue) => {
     if (accumulator.hasOwnProperty(currentValue[filterKey])) {
       accumulator[currentValue[filterKey]].push(currentValue);
-    } else {
-      accumulator[currentValue[filterKey]] = [currentValue];
     }
     return accumulator;
-  }, {});
+  }, initValue);
 
   Object.keys(symbolData).forEach((symbol) => {
     const key = `${table}:${action}:${symbol}`;
