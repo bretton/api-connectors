@@ -34,9 +34,10 @@ module.exports = {
    */
   onAction(action, tableName, symbol, client, data) {
     // Deltas before the getSymbol() call returns can be safely discarded.
-    if (action !== 'partial' && !isInitialized(tableName, symbol, client)) return [];
+    //if (action !== 'partial' && !isInitialized(tableName, symbol, client)) return [];
     // Partials initialize the table, so there's a different signature.
-    if (action === 'partial') return this._partial(tableName, symbol, client, data);
+    //if (action === 'partial') return this._partial(tableName, symbol, client, data);
+    if (action === 'partial' || !isInitialized(tableName, symbol, client)) return this._partial(tableName, symbol, client, data);
 
     // Some tables don't have keys, like 'trade' and 'quote'. They are insert-only tables
     // and you should never see updates or deletes on them.
@@ -66,6 +67,21 @@ module.exports = {
     // between no data for a symbol and a partial for a different symbol.
     if (!client._data[tableName][symbol] || dataArr.length) {
       client._data[tableName][symbol] = dataArr;
+    }
+    if (!data.keys) {
+        if (tableName === 'execution')
+            data.keys = ['execID'];
+        else if (tableName === 'order')
+            data.keys = ['orderID'];
+        else if (tableName === 'instrument')
+            data.keys = ['symbol'];
+        else if (tableName === 'wallet')
+            data.keys = ['account', 'currency'];
+        else if (tableName === 'margin')
+            data.keys = ['account', 'currency'];
+        else if (tableName === 'position')
+            data.keys = ['account', 'symbol', 'currency'];
+       else data.keys = [];
     }
     // Initialize keys.
     client._keys[tableName] = data.keys;
