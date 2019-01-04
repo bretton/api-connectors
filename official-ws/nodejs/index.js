@@ -227,8 +227,16 @@ function addStreamHelper(client, symbol, tableName, callback) {
   });
 }
 
+//function clone(data) {
+//  return data.map(o => Object.assign({}, o));
+//}
+
 function clone(data) {
-  return data.map(o => Object.assign({}, o));
+    if (!Array.isArray(data)) {
+        console.log(data);
+        data = Object.values(data)[0];
+        }
+    return data.map(o => Object.assign({}, o));
 }
 
 if (require.main === module) {
