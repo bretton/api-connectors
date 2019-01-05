@@ -28,8 +28,6 @@ module.exports.getWSAuthQuery = function getWSAuthQuery(apiKey, apiSecret) {
     'api-key': apiKey,
     'api-signature': module.exports(apiSecret, 'GET', '/realtime', nonce)
   };
-  if (debug):
-    debug("Connecting using expires", nonce);
 
   return querystring.stringify(query);
 };
