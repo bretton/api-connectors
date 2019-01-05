@@ -2,6 +2,8 @@ Bretton's customised Bitmex API Connectors
 ==========================================
 I have fixed several problems with details from issues and pull requests, as well as merged in changes from several other repositories which are showing as ahead in commits over master.
 
+Check out the [Cribnotes](Cribnotes.md)
+
 You can tip me via LN at http://lnd3.vanilla.co.za!
 
 -----------------
