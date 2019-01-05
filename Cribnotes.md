@@ -56,25 +56,25 @@ If you're starting the delta server from a `supervisord` config file such as the
 with content:
 ```
 [program:deltaserver]
-command=/home/ubuntu/bitmex-api-connectors/official-ws/delta-server/run.sh
-environment=HOME="/home/ubuntu/bitmex-api-connectors/official-ws/delta-server/",USER="ubuntu"
+command=/home/ubuntu/api-connectors/official-ws/delta-server/run.sh
+environment=HOME="/home/ubuntu/api-connectors/official-ws/delta-server/",USER="ubuntu"
 startretries=999999999999999999999999999
 autostart=true
 autorestart=true
 redirect_stderr=true
-stdout_logfile=/home/ubuntu/bitmex-api-connectors/official-ws/delta-server/logs/deltaserver.log
+stdout_logfile=/home/ubuntu/api-connectors/official-ws/delta-server/logs/deltaserver.log
 ```
 
 Then you need to make sure your `run.sh` file includes the following
 
 ```
-/home/ubuntu/testnet-api-connectors/official-ws/delta-server/run.sh
+/home/ubuntu/api-connectors/official-ws/delta-server/run.sh
 ```
 
 with content
 ```
 # optional custom config I need in source, enable this if using supervisord to start
-cd /home/ubuntu/bitmex-api-connectors/official-ws/delta-server
+cd /home/ubuntu/api-connectors/official-ws/delta-server
 ```
 
 This will allow `supervisord` to launch appropriately with all paths working properly.
