@@ -80,3 +80,8 @@ cd /home/ubuntu/bitmex-api-connectors/official-ws/delta-server
 This will allow `supervisord` to launch appropriately with all paths working properly.
 
 For some reason I couldn't get this happening from within `supervisord` itself.
+
+
+## Pending Merges
+
+It looks like there are a lot of updated Go library files at [Investabit Github fork](https://github.com/Investabit/api-connectors) however a clean merge wasn't possible. Pending?
