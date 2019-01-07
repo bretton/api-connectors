@@ -117,3 +117,23 @@ Code to convert from epoch seconds to Bitmex-suitable time is still being tested
 
 var = nowTimeStamp.isoformat()[:-3]+'Z'
 ```
+
+However this python module seems to work for conversions for iso8601 too:
+
+https://bitbucket.org/micktwomey/pyiso8601
+
+```
+pip3 install iso8601
+python3
+
+Python 3.6.8 
+Type "help", "copyright", "credits" or "license" for more information.
+>>> import iso8601
+>>> iso8601.parse_date("2019-01-07T16:40:36.554749Z")
+datetime.datetime(2019, 1, 7, 16, 40, 36, 554749, tzinfo=datetime.timezone.utc)
+>>> iso8601.parse_date("2019-01-07T16:40:36.554Z")
+datetime.datetime(2019, 1, 7, 16, 40, 36, 554000, tzinfo=datetime.timezone.utc)
+>>> 
+```
+
+Of relevant is [RFC3339](https://tools.ietf.org/html/rfc3339) and scroll down to examples of internet date formats. They don't match what Bitmex is using.
