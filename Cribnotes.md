@@ -137,3 +137,10 @@ datetime.datetime(2019, 1, 7, 16, 40, 36, 554000, tzinfo=datetime.timezone.utc)
 ```
 
 Of relevant is [RFC3339](https://tools.ietf.org/html/rfc3339) and scroll down to examples of internet date formats. They don't match what Bitmex is using.
+
+# ccxt
+If you're running the Delta server on localhost, and want to use a library like [ccxt](https://github.com/ccxt/ccxt) too, you need separate API keys and passwords for each otherwise you will get an invalid nonce error.
+
+There may be work-arounds, the simplest is just to have two API keys in use:
+* One: used for Delta server, staying synchronised
+* Two: used for order placement directly on their API
