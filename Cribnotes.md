@@ -144,3 +144,5 @@ If you're running the Delta server on localhost, and want to use a library like 
 There may be work-arounds, the simplest is just to have two API keys in use:
 * One: used for Delta server, staying synchronised
 * Two: used for order placement directly on their API
+
+The reasons for this are load-based. You can query the Delta server every second, but you can query the primary Bitmex API once every 10 seconds.
