@@ -170,3 +170,5 @@ let bitmex = new ccxt.bitmex({
 })
 balance = bitmex.privateGetUserWalletHistory()
 ```
+
+The issue is also outlined in the [ccxt documentation](https://github.com/ccxt/ccxt/wiki/Manual#overriding-the-nonce).
