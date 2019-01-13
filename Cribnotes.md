@@ -141,8 +141,32 @@ Of relevant is [RFC3339](https://tools.ietf.org/html/rfc3339) and scroll down to
 # ccxt
 If you're running the Delta server on localhost, and want to use a library like [ccxt](https://github.com/ccxt/ccxt) too, you need separate API keys and passwords for each otherwise you will get an invalid nonce error.
 
-There may be work-arounds, the simplest is just to have two API keys in use:
+There are work-arounds below, the simplest is just to have two API keys in use:
 * One: used for Delta server, staying synchronised
 * Two: used for order placement directly on their API
 
 The reasons for this are load-based. You can query the Delta server every second, but you can query the primary Bitmex API once every 10 seconds.
+
+According to [this github issue](https://github.com/ccxt/ccxt/issues/147#issuecomment-324355752) the solution is to include variables to set the nonce correctly:
+
+```
+# Python
+import ccxt
+import time
+bitmex = ccxt.bitmex({
+    "apiKey": BITMEX_API_KEY,
+    "secret": BITMEX_API_SECRET,
+    "nonce": lambda: time.time() * 1000, #  ← milliseconds nonce
+})
+balance = bitmex.privateGetUserWalletHistory()
+```
+
+```
+// JavaScript
+let bitmex = new ccxt.bitmex({
+    "apiKey": BITMEX_API_KEY,
+    "secret": BITMEX_API_SECRET,
+    "nonce": Date.now, // ← milliseconds nonce
+})
+balance = bitmex.privateGetUserWalletHistory()
+```
