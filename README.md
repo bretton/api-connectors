@@ -6,6 +6,8 @@ Check out the [Cribnotes](Cribnotes.md)
 
 You can tip me via LN at http://lnd3.vanilla.co.za!
 
+or sign up using my [Bitmex referral link](https://www.bitmex.com/register/0Pl1vK)
+
 -----------------
 
 BitMEX API Connectors

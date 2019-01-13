@@ -1,5 +1,7 @@
 # Cribnotes
 
+Please sign up using my [Bitmex referral link](https://www.bitmex.com/register/0Pl1vK)
+
 ## Delta-server trade bucketed table
 
 The documentation refers to running a command like
