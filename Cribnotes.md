@@ -140,6 +140,15 @@ datetime.datetime(2019, 1, 7, 16, 40, 36, 554000, tzinfo=datetime.timezone.utc)
 
 Of relevant is [RFC3339](https://tools.ietf.org/html/rfc3339) and scroll down to examples of internet date formats. They don't match what Bitmex is using.
 
+Additionally the [ccxt manual](https://github.com/ccxt/ccxt/wiki/Manual#overriding-unified-api-params) refers to
+
+```
+exchange.parse8601 ('2018-01-01T00:00:00Z') == 1514764800000 // integer, Z = UTC
+exchange.iso8601 (1514764800000) == '2018-01-01T00:00:00Z'   // iso8601 string
+exchange.seconds ()      // integer UTC timestamp in seconds
+exchange.milliseconds () // integer UTC timestamp in milliseconds
+```
+
 # ccxt
 If you're running the Delta server on localhost, and want to use a library like [ccxt](https://github.com/ccxt/ccxt) too, you need separate API keys and passwords for each otherwise you will get an invalid nonce error.
 
