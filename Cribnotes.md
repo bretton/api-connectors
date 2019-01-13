@@ -172,3 +172,5 @@ balance = bitmex.privateGetUserWalletHistory()
 ```
 
 The issue is also outlined in the [ccxt documentation](https://github.com/ccxt/ccxt/wiki/Manual#overriding-the-nonce).
+
+Additionally, if using [ccxt](https://github.com/ccxt/ccxt/) the correct symbol for XBTUSD is actually `BTC/USD` despite working fine with `XBTUSD` on the Delta server. Other instruments seem to work fine with the name, it's just this quirk with `ccxt` and Bitmex XBTUSD.
