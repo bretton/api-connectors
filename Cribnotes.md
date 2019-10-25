@@ -28,38 +28,12 @@ However, this command produces an error:
 </html>
 ```
 
-A solution is to use `?` as follows:
-```
-curl -s "http://localhost:4444/trade?/bucketed?symbol=XBTUSD"
-```
-
-which returns the expected JSON list:
-```
-[
-  {
-    "timestamp": "2019-01-05T21:45:31.597Z",
-    "symbol": "XBTUSD",
-    "side": "Sell",
-    "size": 180,
-    "price": 3838,
-    "tickDirection": "ZeroMinusTick",
-    "trdMatchID": "cb96e6d2-0bc9-d921-dafe-f96857773931",
-    "grossValue": 4689900,
-    "homeNotional": 0.046899,
-    "foreignNotional": 180
-  },
-  {
-  ...
-```
-It's not clear if this is a valid approach to bucketed trades or not?
-
-## Undocumented bucketed streams to subscribe to
-
 Configure the delta server `config.js` to subscribe to the following additional, non-documented streams
 ```
 "tradeBin1m","tradeBin1h","tradeBin1d"
 ```
-Historical data appears when subscribed to over time, and only as much as received since start.
+
+Historical data appears when subscribed to over time, and only as much as received since the start.
 
 ## Supervisord auto-starting
 If starting the delta server from a `supervisord` config file like:
