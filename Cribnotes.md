@@ -1,16 +1,19 @@
 # Cribnotes
 
-Please sign up using my [Bitmex referral link](https://www.bitmex.com/register/0Pl1vK)
+## Shameless promotion
 
-## Delta-server trade bucketed table
+Sign up using my [Bitmex referral link](https://www.bitmex.com/register/0Pl1vK)
 
-The documentation refers to running a command like
+Alternatively leave a tip via LN [here](https://lnd3.vanilla.co.za)
 
+## Delta-server trade bucketed table error
+
+The documentation refers to running the following commands to get bucketed trades
 ```
 curl -s "http://localhost:4444/trade/bucketed?symbol=XBTUSD"
 ```
 
-However this produces an error as follows:
+However, this command produces an error:
 
 ```
 <!DOCTYPE html>
@@ -25,12 +28,12 @@ However this produces an error as follows:
 </html>
 ```
 
-The solution appears to be to use a `?` as follows
+A solution is to use `?` as follows:
 ```
 curl -s "http://localhost:4444/trade?/bucketed?symbol=XBTUSD"
 ```
 
-which returns the expected JSON as follows, with a long list:
+which returns the expected JSON list:
 ```
 [
   {
@@ -48,21 +51,23 @@ which returns the expected JSON as follows, with a long list:
   {
   ...
 ```
-It's not clear if this is a valid approach or not.
+It's not clear if this is a valid approach to bucketed trades or not?
 
-Additionally you can configure the delta server `config.js` to subscribe to the following additional, non-documented streams
+## Undocumented bucketed streams to subscribe to
+
+Configure the delta server `config.js` to subscribe to the following additional, non-documented streams
 ```
 "tradeBin1m","tradeBin1h","tradeBin1d"
 ```
-You won't get historical data until you've been subscribed for a while, and then only to this data.
+Historical data appears when subscribed to over time, and only as much as received since start.
 
 ## Supervisord auto-starting
-If you're starting the delta server from a `supervisord` config file such as the following:
+If starting the delta server from a `supervisord` config file like:
 ```
 /etc/supervisor/conf.d/deltaserver.conf 
 ```
 
-with content:
+with contents:
 ```
 [program:deltaserver]
 command=/home/ubuntu/api-connectors/official-ws/delta-server/run.sh
@@ -74,28 +79,24 @@ redirect_stderr=true
 stdout_logfile=/home/ubuntu/api-connectors/official-ws/delta-server/logs/deltaserver.log
 ```
 
-Then you need to make sure your `run.sh` file includes the following
-
+Then make sure the following `run.sh` file
 ```
 /home/ubuntu/api-connectors/official-ws/delta-server/run.sh
 ```
 
-with content
+includes the following content
 ```
-# optional custom config I need in source, enable this if using supervisord to start
+# optional custom config needed in source, enable this if using supervisord to start
 cd /home/ubuntu/api-connectors/official-ws/delta-server
 ```
 
 This will allow `supervisord` to launch appropriately with all paths working properly.
 
-For some reason I couldn't get this happening from within `supervisord` itself.
-
-
 ## Pending Merges
 
-It looks like there are a lot of updated Go library files at [Investabit Github fork](https://github.com/Investabit/api-connectors) however a clean merge wasn't possible. Pending?
+There are a updated Go library files at [Investabit Github fork](https://github.com/Investabit/api-connectors) however a clean merge wasn't possible for this fork. 
 
-## Date formats
+## Date format
 
 Bitmex expects the date field for `startTime` and `endTime` to be in the format `2017-01-01T00:00:00.000Z` for some API queries, yet allows datetime in the format of Unix epoch time in seconds for the UDF API too.
 
@@ -120,14 +121,13 @@ epochseconds = local_dt.replace(tzinfo=pytz.utc).timestamp()
 print(epochseconds)
 ```
 
-Code to convert from epoch seconds to Bitmex-suitable time is still being tested, the following works in python, but missing some steps for completion until testing done.
-
+Code to convert from epoch seconds to Bitmex-suitable time is still being tested, the following works in python, but missing some steps for completion until testing done:
 ```
 
 var = nowTimeStamp.isoformat()[:-3]+'Z'
 ```
 
-However this python module seems to work for conversions for iso8601 too:
+This python module seems to work for conversions for iso8601 too:
 
 https://bitbucket.org/micktwomey/pyiso8601
 
@@ -145,7 +145,7 @@ datetime.datetime(2019, 1, 7, 16, 40, 36, 554000, tzinfo=datetime.timezone.utc)
 >>> 
 ```
 
-Of relevant is [RFC3339](https://tools.ietf.org/html/rfc3339) and scroll down to examples of internet date formats. They don't match what Bitmex is using.
+Of relevance is [RFC3339](https://tools.ietf.org/html/rfc3339) and scroll down to examples of internet date formats. They don't match what Bitmex is using.
 
 Additionally the [ccxt manual](https://github.com/ccxt/ccxt/wiki/Manual#overriding-unified-api-params) refers to
 
@@ -157,13 +157,11 @@ exchange.milliseconds () // integer UTC timestamp in milliseconds
 ```
 
 # ccxt
-If you're running the Delta server on localhost, and want to use a library like [ccxt](https://github.com/ccxt/ccxt) too, you need separate API keys and passwords for each otherwise you will get an invalid nonce error.
+If running the Delta server on localhost, and use of a library like [ccxt](https://github.com/ccxt/ccxt) is required, then separate API keys and passwords will be required for the delta server and ccxt, otherwise an invalid nonce error results.
 
-There are work-arounds below, the simplest is just to have two API keys in use:
-* One: used for Delta server, staying synchronised
-* Two: used for order placement directly on their API
-
-The reasons for this are load-based. You can query the Delta server every second, but you can query the primary Bitmex API once every 10 seconds.
+Work-arounds below, the simplest is two API keys:
+* One: used for Delta server, staying synchronised, per-second queries
+* Two: used for order placement directly on the REST API, once every 10 seconds query
 
 According to [this github issue](https://github.com/ccxt/ccxt/issues/147#issuecomment-324355752) the solution is to include variables to set the nonce correctly:
 
@@ -189,6 +187,9 @@ let bitmex = new ccxt.bitmex({
 balance = bitmex.privateGetUserWalletHistory()
 ```
 
-The issue is also outlined in the [ccxt documentation](https://github.com/ccxt/ccxt/wiki/Manual#overriding-the-nonce).
+The issue is outlined in the [ccxt documentation](https://github.com/ccxt/ccxt/wiki/Manual#overriding-the-nonce).
 
-Additionally, if using [ccxt](https://github.com/ccxt/ccxt/) the correct symbol for XBTUSD is actually `BTC/USD` despite working fine with `XBTUSD` on the Delta server. Other instruments seem to work fine with the name, it's just this quirk with `ccxt` and Bitmex XBTUSD.
+If using [ccxt](https://github.com/ccxt/ccxt/) the correct symbol for XBTUSD is actually `BTC/USD`. 
+
+`XBTUSD` will work on the Delta server. 
+
