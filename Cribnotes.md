@@ -30,7 +30,7 @@ The solution appears to be to use a `?` as follows
 curl -s "http://localhost:4444/trade?/bucketed?symbol=XBTUSD"
 ```
 
-which returns the expected JSON as follows:
+which returns the expected JSON as follows, with a long list:
 ```
 [
   {
@@ -48,6 +48,13 @@ which returns the expected JSON as follows:
   {
   ...
 ```
+It's not clear if this is a valid approach or not.
+
+Additionally you can configure the delta server `config.js` to subscribe to the following additional, non-documented streams
+```
+"tradeBin1m","tradeBin1h","tradeBin1d"
+```
+You won't get historical data until you've been subscribed for a while, and then only to this data.
 
 ## Supervisord auto-starting
 If you're starting the delta server from a `supervisord` config file such as the following:
