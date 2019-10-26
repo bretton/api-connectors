@@ -35,6 +35,17 @@ Configure the delta server `config.js` to subscribe to the following additional,
 
 Historical data appears when subscribed to over time, and only as much as received since the start.
 
+## Alternate sources for historical trade data
+
+Using Chrome browser visit [public.bitmex.com](https://public.bitmex.com/?prefix=data/trade/) to download daily datasets of trades for all tokens.
+
+You can also download direct with curl such as
+```
+wget https://s3-eu-west-1.amazonaws.com/public.bitmex.com/data/trade/20191025.csv.gz
+```
+
+It might prove move useful to build an archive from the public data, and update it by polling `tradeBin1m`?
+
 ## Supervisord auto-starting
 If starting the delta server from a `supervisord` config file like:
 ```
