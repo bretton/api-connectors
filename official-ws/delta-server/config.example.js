@@ -6,6 +6,7 @@ module.exports = {
 
   // If false, will connect to live exchange.
   // Testnet is https://testnet.bitmex.com
+  // You must manually set this to false to trade on mainnet
   testnet: true,
 
   // get all symbols
@@ -18,10 +19,12 @@ module.exports = {
   // ["instrument","orderBookL2","quote","trade"]
   // Private:
   // ["execution","margin","order","position"]
+  //streams: ["instrument","wallet","margin","order","position","liquidation","tradeBin1m","tradeBin1h","tradeBin1d"],
   //streams: ["instrument","wallet","margin","order","position","liquidation"],
   //streams: ["wallet","margin","order","position","liquidation"],
   //streams: ["wallet","margin","order","position"],
-  streams: ["liquidation"],
+  //streams: ["liquidation"],
+  streams: ["instrument","wallet","margin","order","position","liquidation","trade","tradeBin1m","tradeBin1h","tradeBin1d"],
 
   // If you want to use any of the above "private" streams, you must authenticate with an API Key.
   apiKeyID: '',
